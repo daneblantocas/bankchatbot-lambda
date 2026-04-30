@@ -6,7 +6,11 @@ dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table('ChatBot')
 
 def lambda_handler(event, context):
-    body = json.loads(event.get('body', '{}'))
+    try:
+        body = json.loads(event.get('body', '{}'))
+    except:
+        body = {}
+    
     account_id = body.get('accountId', '')
     reason = body.get('reason', 'Lost or stolen')
     
@@ -19,7 +23,7 @@ def lambda_handler(event, context):
     
     table.update_item(
         Key={
-            'PK': f'ACCOUNT#{account_id}',
+            'PK': 'ACCOUNT#' + account_id,
             'SK': 'METADATA'
         },
         UpdateExpression='SET cardStatus = :status, blockedAt = :time, blockReason = :reason',
@@ -34,4 +38,7 @@ def lambda_handler(event, context):
         'statusCode': 200,
         'headers': {'Access-Control-Allow-Origin': '*'},
         'body': json.dumps({
-            'message': f'Card for account
+            'message': 'Card for account ' + account_id + ' has been blocked.',
+            'reason': reason
+        })
+    }
